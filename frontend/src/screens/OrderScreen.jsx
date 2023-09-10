@@ -27,7 +27,7 @@ const OrderScreen = () => {
 
   const {
     data: order,
-    refresh,
+    refetch,
     isLoading,
     error,
   } = useGetOrderDetailsQuery(orderId);
@@ -48,14 +48,14 @@ const OrderScreen = () => {
     if (!errorPayPal && !loadingPayPal && paypal.clientId) {
       const loadPayPalScript = async () => {
         paypalDispatch({
-          type: 'resetOptions',
+          type: "resetOptions",
           value: {
-            'client-id': paypal.clientId,
-            currency: 'CAD',
-          }
+            "client-id": paypal.clientId,
+            currency: "CAD",
+          },
         });
-        paypalDispatch({ type: 'setLoadingStatus', value: 'pending' });
-      }
+        paypalDispatch({ type: "setLoadingStatus", value: "pending" });
+      };
       if (order && !order.isPaid) {
         if (!window.paypal) {
           loadPayPalScript();
@@ -63,6 +63,43 @@ const OrderScreen = () => {
       }
     }
   }, [order, paypal, paypalDispatch, loadingPayPal, errorPayPal]);
+
+ function onApprove(data, actions) {
+   return actions.order.capture().then(async function (details) {
+     try {
+       await payOrder({ orderId, details });
+       refetch();
+       toast.success("Order is paid");
+     } catch (err) {
+       toast.error(err?.data?.message || err.error);
+     }
+   });
+ }
+
+ async function onApproveTest() {
+   await payOrder({ orderId, details: { payer: {} } });
+   refetch();
+
+   toast.success("Order is paid");
+ }
+
+ function onError(err) {
+   toast.error(err.message);
+ }
+
+ function createOrder(data, actions) {
+   return actions.order
+     .create({
+       purchase_units: [
+         {
+           amount: { value: order.totalPrice },
+         },
+       ],
+     })
+     .then((orderID) => {
+       return orderID;
+     });
+ }
 
   return isLoading ? (
     <Loader />
@@ -158,6 +195,32 @@ const OrderScreen = () => {
                   <Col>${order.totalPrice}</Col>
                 </Row>
               </ListGroup.Item>
+              {!order.isPaid && (
+                <ListGroup.Item>
+                  {loadingPay && <Loader />}
+
+                  {isPending ? (
+                    <Loader />
+                  ) : (
+                    <div>
+                      <Button
+                        style={{ marginBottom: "10px" }}
+                        onClick={onApproveTest}
+                      >
+                        Test Pay Order
+                      </Button>
+
+                      <div>
+                        <PayPalButtons
+                          createOrder={createOrder}
+                          onApprove={onApprove}
+                          onError={onError}
+                        ></PayPalButtons>
+                      </div>
+                    </div>
+                  )}
+                </ListGroup.Item>
+              )}
             </ListGroup>
           </Card>
         </Col>
