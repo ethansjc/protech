@@ -5,12 +5,11 @@ import {
   Col,
   ListGroup,
   Image,
-  Form,
   Button,
   Card,
 } from "react-bootstrap";
 import { toast } from "react-toastify";
-import { UseSelector, useSelector } from "react-redux";
+import { useSelector } from "react-redux";
 import { PayPalButtons, usePayPalScriptReducer } from "@paypal/react-paypal-js";
 import Message from "../components/Message";
 import Loader from "../components/Loader";
