@@ -67,7 +67,7 @@ const ProductListScreen = () => {
       {isLoading ? (
         <Loader />
       ) : error ? (
-        <Message variant="danger">{error}</Message>
+        <Message variant="danger">{error.data.message}</Message>
       ) : (
         <>
           <Table striped hover responsive className="table-sm">
@@ -106,8 +106,8 @@ const ProductListScreen = () => {
                 </tr>
               ))}
             </tbody>
-              </Table>
-              <Paginate pages={data.pages} page={data.page} isAdmin={true} />
+          </Table>
+          <Paginate pages={data.pages} page={data.page} isAdmin={true} />
         </>
       )}
     </>
